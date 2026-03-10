@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('resolve.current.site')->group(function (): void {
     Route::get('/cart', [CartController::class, 'show']);
+    Route::post('/cart/items', [CartController::class, 'addItem']);
     Route::get('/products', [CatalogController::class, 'index']);
     Route::get('/products/{product}', [CatalogController::class, 'show']);
 });
