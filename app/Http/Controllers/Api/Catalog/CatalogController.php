@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Catalog;
 
+use App\Domain\Catalog\Queries\FindProductForSite;
 use App\Domain\Catalog\Queries\ListProducts;
 use App\Domain\Shared\SiteContext\CurrentSiteResolver;
 use App\Domain\Shared\SiteContext\Site;
@@ -15,12 +16,31 @@ class CatalogController extends Controller
 {
     public function index(Request $request, ListProducts $listProducts): AnonymousResourceCollection
     {
-        $site = $request->attributes->get(CurrentSiteResolver::REQUEST_ATTRIBUTE);
+        return ProductResource::collection($listProducts($this->currentSite($request)));
+    }
 
-        if (! $site instanceof Site) {
+    public function show(
+        Request $request,
+        int $product,
+        FindProductForSite $findProductForSite,
+    ): ProductResource {
+        $resolvedProduct = $findProductForSite($this->currentSite($request), $product);
+
+        if ($resolvedProduct === null) {
             throw new NotFoundHttpException();
         }
 
-        return ProductResource::collection($listProducts($site));
+        return ProductResource::make($resolvedProduct);
+    }
+
+    private function currentSite(Request $request): Site
+    {
+        $site = $request->attributes->get(CurrentSiteResolver::REQUEST_ATTRIBUTE);
+
+        if ($site instanceof Site) {
+            return $site;
+        }
+
+        throw new NotFoundHttpException();
     }
 }
