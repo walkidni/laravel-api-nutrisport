@@ -4,7 +4,7 @@ namespace App\Domain\Cart\Exceptions;
 
 use RuntimeException;
 
-class InsufficientStock extends RuntimeException
+class InsufficientStockException extends RuntimeException
 {
     public static function forRequestedQuantity(): self
     {

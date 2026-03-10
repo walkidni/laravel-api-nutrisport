@@ -3,7 +3,7 @@
 namespace App\Domain\Cart\Services;
 
 use App\Domain\Cart\DTOs\CartViewDTO;
-use App\Domain\Cart\Exceptions\InsufficientStock;
+use App\Domain\Cart\Exceptions\InsufficientStockException;
 use App\Domain\Catalog\Models\Product;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -116,7 +116,7 @@ class CartStateService
             }
 
             if ($line['quantity'] > $availableStock) {
-                throw InsufficientStock::forRequestedQuantity();
+                throw InsufficientStockException::forRequestedQuantity();
             }
 
             return;

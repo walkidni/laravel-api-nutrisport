@@ -6,7 +6,7 @@ use App\Domain\Cart\Actions\AddCartItemAction;
 use App\Domain\Cart\Actions\RemoveCartItemAction;
 use App\Domain\Cart\Actions\SetCartItemQuantityAction;
 use App\Domain\Cart\DTOs\CartViewDTO;
-use App\Domain\Cart\Exceptions\InsufficientStock;
+use App\Domain\Cart\Exceptions\InsufficientStockException;
 use App\Domain\Cart\Actions\ShowCartAction;
 use App\Domain\Shared\SiteContext\CurrentSiteContextService;
 use App\Http\Controllers\Controller;
@@ -76,7 +76,7 @@ class CartController extends Controller
     {
         try {
             $cartView = $callback();
-        } catch (InsufficientStock $exception) {
+        } catch (InsufficientStockException $exception) {
             return response()->json([
                 'message' => $exception->getMessage(),
             ], 422);
