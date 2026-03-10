@@ -77,6 +77,41 @@ class AddCartItemTest extends TestCase
             ]);
     }
 
+    public function test_returns_a_validation_error_when_the_requested_quantity_exceeds_available_stock(): void
+    {
+        [$siteDomain, $productId] = $this->seedCatalogForSite('fr', 2);
+
+        $this->postJson("http://{$siteDomain}/v1/cart/items", [
+            'product_id' => $productId,
+            'quantity' => 3,
+        ])
+            ->assertStatus(422)
+            ->assertExactJson([
+                'message' => 'Requested quantity exceeds available stock.',
+            ]);
+    }
+
+    public function test_returns_a_validation_error_when_the_final_quantity_exceeds_available_stock(): void
+    {
+        [$siteDomain, $productId] = $this->seedCatalogForSite('fr', 2);
+        $tokenHeader = (string) config('cart.token_header');
+
+        $token = $this->postJson("http://{$siteDomain}/v1/cart/items", [
+            'product_id' => $productId,
+            'quantity' => 1,
+        ])->headers->get($tokenHeader);
+
+        $this->withHeader($tokenHeader, (string) $token)
+            ->postJson("http://{$siteDomain}/v1/cart/items", [
+                'product_id' => $productId,
+                'quantity' => 2,
+            ])
+            ->assertStatus(422)
+            ->assertExactJson([
+                'message' => 'Requested quantity exceeds available stock.',
+            ]);
+    }
+
     public function test_failing_to_add_an_unpriced_product_does_not_mutate_the_existing_cart(): void
     {
         [$siteDomain, $productId] = $this->seedCatalogForSite('fr');
@@ -122,7 +157,7 @@ class AddCartItemTest extends TestCase
     /**
      * @return array{string, int}
      */
-    private function seedCatalogForSite(string $siteCode): array
+    private function seedCatalogForSite(string $siteCode, int $stock = 10): array
     {
         $siteDomain = (string) config("sites.domains.{$siteCode}");
 
@@ -135,7 +170,7 @@ class AddCartItemTest extends TestCase
 
         $productId = DB::table('products')->insertGetId([
             Product::NAME => 'Whey Protein',
-            Product::STOCK => 10,
+            Product::STOCK => $stock,
             'created_at' => now(),
             'updated_at' => now(),
         ]);

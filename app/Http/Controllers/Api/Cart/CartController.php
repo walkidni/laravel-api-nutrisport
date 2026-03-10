@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Cart;
 
 use App\Domain\Cart\Actions\AddCartItemAction;
 use App\Domain\Cart\DTOs\CartViewDTO;
+use App\Domain\Cart\Exceptions\InsufficientStock;
 use App\Domain\Cart\Actions\ShowCartAction;
 use App\Domain\Shared\SiteContext\CurrentSiteContextService;
 use App\Http\Controllers\Controller;
@@ -30,11 +31,17 @@ class CartController extends Controller
         AddCartItemRequest $request,
         AddCartItemAction $addCartItemAction,
     ): JsonResponse {
-        $cartView = $addCartItemAction(
-            $request,
-            $this->currentSiteContextService->get($request),
-            $request->validated(),
-        );
+        try {
+            $cartView = $addCartItemAction(
+                $request,
+                $this->currentSiteContextService->get($request),
+                $request->validated(),
+            );
+        } catch (InsufficientStock $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 422);
+        }
 
         return $this->respond($cartView);
     }

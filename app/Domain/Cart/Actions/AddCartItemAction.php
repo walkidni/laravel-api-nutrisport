@@ -3,6 +3,7 @@
 namespace App\Domain\Cart\Actions;
 
 use App\Domain\Cart\DTOs\CartViewDTO;
+use App\Domain\Cart\Exceptions\InsufficientStock;
 use App\Domain\Cart\Services\CartStorageService;
 use App\Domain\Catalog\Models\Product;
 use App\Domain\Shared\SiteContext\Site;
@@ -29,6 +30,7 @@ class AddCartItemAction
 
         [$token, $storedLines] = $this->resolveCartState($request, $siteCode);
         $updatedLines = $this->incrementLineQuantity($storedLines, $requestedProductId, $requestedQuantity);
+        $this->assertRequestedQuantityWithinStock($requestedProductId, $updatedLines);
         $cartView = $this->buildCartView($token, $siteId, $updatedLines);
 
         $this->cartStorageService->put($siteCode, $token, [
@@ -112,6 +114,32 @@ class AddCartItemAction
         ];
 
         return $storedLines;
+    }
+
+    /**
+     * @param array<int, array{product_id: int, quantity: int}> $storedLines
+     */
+    private function assertRequestedQuantityWithinStock(int $productId, array $storedLines): void
+    {
+        $availableStock = Product::query()
+            ->whereKey($productId)
+            ->value(Product::STOCK);
+
+        if (! is_int($availableStock)) {
+            return;
+        }
+
+        foreach ($storedLines as $line) {
+            if ($line['product_id'] !== $productId) {
+                continue;
+            }
+
+            if ($line['quantity'] > $availableStock) {
+                throw InsufficientStock::forRequestedQuantity();
+            }
+
+            return;
+        }
     }
 
     /**
