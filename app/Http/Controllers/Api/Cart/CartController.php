@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api\Cart;
 
-use App\Domain\Cart\Actions\ShowCart;
+use App\Domain\Cart\Actions\ShowCartAction;
 use App\Domain\Shared\SiteContext\CurrentSiteResolver;
 use App\Domain\Shared\SiteContext\Site;
 use App\Http\Controllers\Controller;
@@ -13,9 +13,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class CartController extends Controller
 {
-    public function show(Request $request, ShowCart $showCart): JsonResponse
+    public function show(Request $request, ShowCartAction $showCartAction): JsonResponse
     {
-        $cartView = $showCart($request, $this->currentSite($request));
+        $cartView = $showCartAction($request, $this->currentSite($request));
 
         $response = CartResource::make($cartView)->response();
 

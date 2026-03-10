@@ -2,7 +2,7 @@
 
 namespace App\Domain\Cart\DTOs;
 
-final readonly class CartView
+final readonly class CartViewDTO
 {
     /**
      * @param array<int, array<string, int|string>> $lines

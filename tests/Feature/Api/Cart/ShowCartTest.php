@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Api\Cart;
 
-use App\Domain\Cart\Services\CartStorage;
+use App\Domain\Cart\Services\CartStorageService;
 use App\Domain\Shared\SiteContext\Site;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -49,7 +49,7 @@ class ShowCartTest extends TestCase
             'updated_at' => now(),
         ]);
 
-        app(CartStorage::class)->put($siteCode, $token, [
+        app(CartStorageService::class)->put($siteCode, $token, [
             'lines' => [
                 [
                     'product_id' => 42,

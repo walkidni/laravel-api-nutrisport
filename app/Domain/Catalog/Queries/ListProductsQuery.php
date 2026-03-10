@@ -7,7 +7,7 @@ use App\Domain\Catalog\Models\ProductSitePrice;
 use App\Domain\Shared\SiteContext\Site;
 use Illuminate\Database\Eloquent\Collection;
 
-class ListProducts
+class ListProductsQuery
 {
     public function __invoke(Site $site): Collection
     {

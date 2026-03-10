@@ -4,7 +4,7 @@ namespace App\Domain\Cart\Services;
 
 use Illuminate\Support\Facades\Cache;
 
-class CartStorage
+class CartStorageService
 {
     /**
      * @return array<string, mixed>|null

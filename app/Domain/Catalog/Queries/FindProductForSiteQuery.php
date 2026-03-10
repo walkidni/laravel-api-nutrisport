@@ -6,7 +6,7 @@ use App\Domain\Catalog\Models\Product;
 use App\Domain\Catalog\Models\ProductSitePrice;
 use App\Domain\Shared\SiteContext\Site;
 
-class FindProductForSite
+class FindProductForSiteQuery
 {
     public function __invoke(Site $site, int $productId): ?Product
     {

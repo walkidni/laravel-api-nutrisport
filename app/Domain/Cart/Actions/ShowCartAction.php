@@ -2,32 +2,32 @@
 
 namespace App\Domain\Cart\Actions;
 
-use App\Domain\Cart\DTOs\CartView;
-use App\Domain\Cart\Services\CartStorage;
+use App\Domain\Cart\DTOs\CartViewDTO;
+use App\Domain\Cart\Services\CartStorageService;
 use App\Domain\Shared\SiteContext\Site;
 use Illuminate\Http\Request;
 
-class ShowCart
+class ShowCartAction
 {
     public function __construct(
-        private readonly CartStorage $cartStorage,
+        private readonly CartStorageService $cartStorageService,
     ) {
     }
 
-    public function __invoke(Request $request, Site $site): CartView
+    public function __invoke(Request $request, Site $site): CartViewDTO
     {
         $tokenHeader = (string) config('cart.token_header');
         $token = $request->headers->get($tokenHeader);
 
         if (! is_string($token) || $token === '') {
-            return CartView::empty();
+            return CartViewDTO::empty();
         }
 
         $siteCode = (string) $site->getAttribute(Site::CODE);
-        $payload = $this->cartStorage->find($siteCode, $token);
+        $payload = $this->cartStorageService->find($siteCode, $token);
 
         if ($payload === null) {
-            return CartView::empty();
+            return CartViewDTO::empty();
         }
 
         $lines = $payload['lines'] ?? [];
@@ -36,7 +36,7 @@ class ShowCart
             $lines = [];
         }
 
-        return new CartView(
+        return new CartViewDTO(
             lines: $lines,
             itemCount: count($lines),
             totalAmount: 0,
