@@ -2,10 +2,12 @@
 
 namespace Tests\Feature\Api\Cart;
 
-use App\Domain\Cart\Services\CartStorageService;
+use App\Domain\Catalog\Models\Product;
+use App\Domain\Catalog\Models\ProductSitePrice;
 use App\Domain\Shared\SiteContext\Site;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class ShowCartTest extends TestCase
@@ -42,21 +44,36 @@ class ShowCartTest extends TestCase
         $tokenHeader = (string) config('cart.token_header');
         $token = 'cart-token-123';
 
-        DB::table('sites')->insert([
+        $siteId = DB::table('sites')->insertGetId([
             Site::CODE => $siteCode,
             Site::DOMAIN => $siteDomain,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
-        app(CartStorageService::class)->put($siteCode, $token, [
+        $productId = DB::table('products')->insertGetId([
+            Product::NAME => 'Whey Protein',
+            Product::STOCK => 10,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('product_site_prices')->insert([
+            ProductSitePrice::PRODUCT_ID => $productId,
+            ProductSitePrice::SITE_ID => $siteId,
+            ProductSitePrice::PRICE_AMOUNT => 2999,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        Cache::put("cart:{$siteCode}:{$token}", [
             'lines' => [
                 [
-                    'product_id' => 42,
+                    'product_id' => $productId,
                     'quantity' => 2,
                 ],
             ],
-        ]);
+        ], (int) config('cart.ttl_seconds'));
 
         $this->withHeader($tokenHeader, $token)
             ->getJson("http://{$siteDomain}/v1/cart")
@@ -66,12 +83,15 @@ class ShowCartTest extends TestCase
                 'data' => [
                     'lines' => [
                         [
-                            'product_id' => 42,
+                            'product_id' => $productId,
+                            'name' => 'Whey Protein',
                             'quantity' => 2,
+                            'unit_price_amount' => 2999,
+                            'line_total_amount' => 5998,
                         ],
                     ],
                     'item_count' => 1,
-                    'total_amount' => 0,
+                    'total_amount' => 5998,
                 ],
             ]);
     }

@@ -77,6 +77,43 @@ class AddCartItemTest extends TestCase
             ]);
     }
 
+    public function test_add_with_an_unknown_cart_token_returns_a_new_backend_issued_token(): void
+    {
+        [$siteDomain, $productId] = $this->seedCatalogForSite('fr');
+        $tokenHeader = (string) config('cart.token_header');
+        $unknownToken = 'unknown-cart-token';
+
+        $response = $this->withHeader($tokenHeader, $unknownToken)
+            ->postJson("http://{$siteDomain}/v1/cart/items", [
+                'product_id' => $productId,
+                'quantity' => 1,
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertHeader($tokenHeader);
+
+        $issuedToken = (string) $response->headers->get($tokenHeader);
+
+        $this->assertNotSame($unknownToken, $issuedToken);
+
+        $response->assertExactJson([
+            'data' => [
+                'lines' => [
+                    [
+                        'product_id' => $productId,
+                        'name' => 'Whey Protein',
+                        'quantity' => 1,
+                        'unit_price_amount' => 2999,
+                        'line_total_amount' => 2999,
+                    ],
+                ],
+                'item_count' => 1,
+                'total_amount' => 2999,
+            ],
+        ]);
+    }
+
     public function test_returns_a_validation_error_when_the_requested_quantity_exceeds_available_stock(): void
     {
         [$siteDomain, $productId] = $this->seedCatalogForSite('fr', 2);
@@ -145,11 +182,14 @@ class AddCartItemTest extends TestCase
                     'lines' => [
                         [
                             'product_id' => $productId,
+                            'name' => 'Whey Protein',
                             'quantity' => 1,
+                            'unit_price_amount' => 2999,
+                            'line_total_amount' => 2999,
                         ],
                     ],
                     'item_count' => 1,
-                    'total_amount' => 0,
+                    'total_amount' => 2999,
                 ],
             ]);
     }
