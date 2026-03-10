@@ -15,9 +15,11 @@ class ListProductsTest extends TestCase
 
     public function test_it_lists_products_for_the_resolved_site(): void
     {
+        $siteDomain = (string) config('sites.domains.fr');
+
         $siteId = DB::table('sites')->insertGetId([
             Site::CODE => 'fr',
-            Site::DOMAIN => 'nutri-sport.fr',
+            Site::DOMAIN => $siteDomain,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -37,8 +39,7 @@ class ListProductsTest extends TestCase
             'updated_at' => now(),
         ]);
 
-        $this->withHeader('Host', 'nutri-sport.fr')
-            ->getJson('/api/products')
+        $this->getJson("http://{$siteDomain}/v1/products")
             ->assertOk()
             ->assertExactJson([
                 'data' => [
