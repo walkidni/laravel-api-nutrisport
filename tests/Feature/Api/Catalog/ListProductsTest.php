@@ -13,7 +13,7 @@ class ListProductsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_lists_products_for_the_resolved_site(): void
+    public function test_lists_products_for_the_resolved_site(): void
     {
         $siteDomain = (string) config('sites.domains.fr');
 

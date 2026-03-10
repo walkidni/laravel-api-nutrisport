@@ -123,4 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'site_header_fallback_enabled' => env('SITE_HEADER_FALLBACK_ENABLED', false),
+
 ];
