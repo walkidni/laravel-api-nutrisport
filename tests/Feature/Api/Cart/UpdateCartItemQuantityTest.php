@@ -71,7 +71,7 @@ class UpdateCartItemQuantityTest extends TestCase
                 'quantity' => 0,
             ])
             ->assertOk()
-            ->assertHeader($tokenHeader, $token)
+            ->assertHeaderMissing($tokenHeader)
             ->assertExactJson([
                 'data' => [
                     'lines' => [],

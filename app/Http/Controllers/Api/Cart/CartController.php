@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Cart;
 
 use App\Domain\Cart\Actions\AddCartItemAction;
+use App\Domain\Cart\Actions\RemoveCartItemAction;
 use App\Domain\Cart\Actions\SetCartItemQuantityAction;
 use App\Domain\Cart\DTOs\CartViewDTO;
 use App\Domain\Cart\Exceptions\InsufficientStock;
@@ -55,6 +56,20 @@ class CartController extends Controller
                 $request->validated(),
             );
         });
+    }
+
+    public function removeItem(
+        Request $request,
+        int $product,
+        RemoveCartItemAction $removeCartItemAction,
+    ): JsonResponse {
+        return $this->respond(
+            $removeCartItemAction(
+                $request,
+                $this->currentSiteContextService->get($request),
+                $product,
+            ),
+        );
     }
 
     private function handleCartMutation(callable $callback): JsonResponse
