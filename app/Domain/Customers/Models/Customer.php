@@ -8,8 +8,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class Customer extends Authenticatable
+class Customer extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<CustomerFactory> */
     use HasFactory;
@@ -41,5 +42,18 @@ class Customer extends Authenticatable
     public function refreshTokens(): HasMany
     {
         return $this->hasMany(CustomerRefreshToken::class);
+    }
+
+    public function getJWTIdentifier(): int
+    {
+        return (int) $this->getKey();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getJWTCustomClaims(): array
+    {
+        return [];
     }
 }
