@@ -5,7 +5,6 @@ namespace Tests\Support;
 use App\Domain\Catalog\Models\Product;
 use App\Domain\Catalog\Models\ProductSitePrice;
 use App\Domain\Shared\SiteContext\Site;
-use Illuminate\Support\Facades\DB;
 
 final class TestDataHelper
 {
@@ -16,14 +15,12 @@ final class TestDataHelper
     {
         $siteDomain = (string) config("sites.domains.{$siteCode}");
 
-        $siteId = DB::table('sites')->insertGetId([
+        $site = Site::factory()->create([
             Site::CODE => $siteCode,
             Site::DOMAIN => $siteDomain,
-            'created_at' => now(),
-            'updated_at' => now(),
         ]);
 
-        return [$siteId, $siteDomain];
+        return [(int) $site->getKey(), $siteDomain];
     }
 
     /**
@@ -33,21 +30,17 @@ final class TestDataHelper
     {
         [$siteId, $siteDomain] = self::seedSite($siteCode);
 
-        $productId = DB::table('products')->insertGetId([
+        $product = Product::factory()->create([
             Product::NAME => 'Whey Protein',
             Product::STOCK => $stock,
-            'created_at' => now(),
-            'updated_at' => now(),
         ]);
 
-        DB::table('product_site_prices')->insert([
-            ProductSitePrice::PRODUCT_ID => $productId,
+        ProductSitePrice::factory()->create([
+            ProductSitePrice::PRODUCT_ID => (int) $product->getKey(),
             ProductSitePrice::SITE_ID => $siteId,
             ProductSitePrice::PRICE_AMOUNT_CENTS => 2999,
-            'created_at' => now(),
-            'updated_at' => now(),
         ]);
 
-        return [$siteDomain, $productId];
+        return [$siteDomain, (int) $product->getKey()];
     }
 }
