@@ -9,6 +9,7 @@ use App\Domain\Customers\Models\Customer;
 use App\Domain\Orders\Enums\DeliveryMethodEnum;
 use App\Domain\Orders\Enums\OrderStatusEnum;
 use App\Domain\Orders\Enums\PaymentMethodEnum;
+use App\Domain\Orders\Events\OrderPlacedEvent;
 use App\Domain\Orders\Models\Order;
 use App\Domain\Orders\Models\OrderLine;
 use App\Domain\Shared\SiteContext\Site;
@@ -16,6 +17,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Tests\Support\TestDataHelper;
 use Tests\TestCase;
 use Tymon\JWTAuth\JWTGuard;
@@ -33,6 +35,8 @@ class CheckoutTest extends TestCase
 
     public function test_defines_the_checkout_contract_for_the_authenticated_customer_cart(): void
     {
+        Event::fake([OrderPlacedEvent::class]);
+
         [$siteId, $siteDomain] = TestDataHelper::seedSite('fr');
 
         $customer = Customer::factory()->create([
@@ -121,6 +125,12 @@ class CheckoutTest extends TestCase
         $this->assertNull(
             Cache::get(app(CartStorageService::class)->makeKey('fr', $cartToken)),
         );
+
+        Event::assertDispatched(OrderPlacedEvent::class, function (OrderPlacedEvent $event) use ($orderId, $customer, $siteId): bool {
+            return (int) $event->order->getKey() === $orderId
+                && (int) $event->order->getAttribute(Order::CUSTOMER_ID) === (int) $customer->getKey()
+                && (int) $event->order->getAttribute(Order::SITE_ID) === $siteId;
+        });
     }
 
     public function test_returns_a_validation_error_when_checkout_is_attempted_with_an_empty_cart(): void

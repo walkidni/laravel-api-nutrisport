@@ -11,12 +11,14 @@ use App\Domain\Orders\DTOs\CheckoutResultDTO;
 use App\Domain\Orders\Enums\DeliveryMethodEnum;
 use App\Domain\Orders\Enums\OrderStatusEnum;
 use App\Domain\Orders\Enums\PaymentMethodEnum;
+use App\Domain\Orders\Events\OrderPlacedEvent;
 use App\Domain\Orders\Exceptions\CheckoutException;
 use App\Domain\Orders\Models\Order;
 use App\Domain\Orders\Models\OrderLine;
 use App\Domain\Orders\Services\OrderReferenceService;
 use App\Domain\Shared\SiteContext\Site;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\DB;
 
 class CheckoutAction
@@ -144,6 +146,13 @@ class CheckoutAction
         if (is_string($cartToken) && $cartToken !== '') {
             $this->cartStorageService->forget($siteCode, $cartToken);
         }
+
+        /** @var Order $placedOrder */
+        $placedOrder = Order::query()
+            ->with(['customer', 'site', 'lines'])
+            ->findOrFail($checkoutResult->id);
+
+        Event::dispatch(new OrderPlacedEvent($placedOrder));
 
         return $checkoutResult;
     }
