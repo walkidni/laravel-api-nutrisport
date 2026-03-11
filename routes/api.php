@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\Api\CustomerAuth\CustomerAuthController;
 use App\Http\Controllers\Api\Cart\CartController;
 use App\Http\Controllers\Api\Catalog\CatalogController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('resolve.current.site')->group(function (): void {
+    Route::post('/auth/register', [CustomerAuthController::class, 'register']);
     Route::get('/cart', [CartController::class, 'show']);
     Route::post('/cart/items', [CartController::class, 'addItem']);
     Route::patch('/cart/items/{product}', [CartController::class, 'setItemQuantity']);
