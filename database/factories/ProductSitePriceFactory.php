@@ -19,7 +19,7 @@ class ProductSitePriceFactory extends Factory
         return [
             ProductSitePrice::PRODUCT_ID => Product::factory(),
             ProductSitePrice::SITE_ID => Site::factory(),
-            ProductSitePrice::PRICE_AMOUNT => $this->faker->numberBetween(100, 20000),
+            ProductSitePrice::PRICE_AMOUNT_CENTS => $this->faker->numberBetween(100, 20000),
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Domain\Cart\Services;
 use App\Domain\Cart\DTOs\CartViewDTO;
 use App\Domain\Cart\Exceptions\InsufficientStockException;
 use App\Domain\Catalog\Models\Product;
+use App\Domain\Catalog\Models\ProductSitePrice;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -150,7 +151,7 @@ class CartStateService
             ->get([
                 'products.id as product_id',
                 'products.name',
-                'product_site_prices.price_amount as unit_price_amount',
+                'product_site_prices.'.ProductSitePrice::PRICE_AMOUNT_CENTS.' as unit_price_amount_cents',
             ])
             ->keyBy('product_id');
 
@@ -159,7 +160,7 @@ class CartStateService
         }
 
         $lines = [];
-        $totalAmount = 0;
+        $totalAmountCents = 0;
 
         foreach ($quantitiesByProductId as $resolvedProductId => $quantity) {
             $pricedProduct = $pricedProducts->get($resolvedProductId);
@@ -168,24 +169,24 @@ class CartStateService
                 throw new NotFoundHttpException();
             }
 
-            $unitPriceAmount = (int) $pricedProduct->getAttribute('unit_price_amount');
-            $lineTotalAmount = $unitPriceAmount * $quantity;
+            $unitPriceAmountCents = (int) $pricedProduct->getAttribute('unit_price_amount_cents');
+            $lineTotalAmountCents = $unitPriceAmountCents * $quantity;
 
             $lines[] = [
                 'product_id' => (int) $pricedProduct->getAttribute('product_id'),
                 'name' => (string) $pricedProduct->getAttribute(Product::NAME),
                 'quantity' => $quantity,
-                'unit_price_amount' => $unitPriceAmount,
-                'line_total_amount' => $lineTotalAmount,
+                'unit_price_amount_cents' => $unitPriceAmountCents,
+                'line_total_amount_cents' => $lineTotalAmountCents,
             ];
 
-            $totalAmount += $lineTotalAmount;
+            $totalAmountCents += $lineTotalAmountCents;
         }
 
         return new CartViewDTO(
             lines: $lines,
             itemCount: count($lines),
-            totalAmount: $totalAmount,
+            totalAmountCents: $totalAmountCents,
             token: $token,
         );
     }

@@ -12,25 +12,25 @@ class OrderLine extends Model
     public const ORDER_ID = 'order_id';
     public const PRODUCT_ID = 'product_id';
     public const PRODUCT_NAME = 'product_name';
-    public const UNIT_PRICE_AMOUNT = 'unit_price_amount';
+    public const UNIT_PRICE_AMOUNT_CENTS = 'unit_price_amount_cents';
     public const QUANTITY = 'quantity';
-    public const LINE_TOTAL_AMOUNT = 'line_total_amount';
+    public const LINE_TOTAL_AMOUNT_CENTS = 'line_total_amount_cents';
 
     protected $fillable = [
         self::ORDER_ID,
         self::PRODUCT_ID,
         self::PRODUCT_NAME,
-        self::UNIT_PRICE_AMOUNT,
+        self::UNIT_PRICE_AMOUNT_CENTS,
         self::QUANTITY,
-        self::LINE_TOTAL_AMOUNT,
+        self::LINE_TOTAL_AMOUNT_CENTS,
     ];
 
     protected function casts(): array
     {
         return [
-            self::UNIT_PRICE_AMOUNT => 'integer',
+            self::UNIT_PRICE_AMOUNT_CENTS => 'integer',
             self::QUANTITY => 'integer',
-            self::LINE_TOTAL_AMOUNT => 'integer',
+            self::LINE_TOTAL_AMOUNT_CENTS => 'integer',
         ];
     }
 

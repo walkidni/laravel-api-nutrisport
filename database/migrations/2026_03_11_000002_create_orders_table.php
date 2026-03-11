@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('status');
             $table->string('payment_method');
             $table->string('delivery_method');
-            $table->unsignedInteger('delivery_amount');
-            $table->unsignedInteger('total_amount');
+            $table->unsignedInteger('delivery_amount_cents');
+            $table->unsignedInteger('total_amount_cents');
             $table->string('full_name');
             $table->string('full_address');
             $table->string('city');

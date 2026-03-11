@@ -34,7 +34,7 @@ class ListProductsTest extends TestCase
         DB::table('product_site_prices')->insert([
             ProductSitePrice::PRODUCT_ID => $productId,
             ProductSitePrice::SITE_ID => $siteId,
-            ProductSitePrice::PRICE_AMOUNT => 2999,
+            ProductSitePrice::PRICE_AMOUNT_CENTS => 2999,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -46,7 +46,7 @@ class ListProductsTest extends TestCase
                     [
                         'id' => $productId,
                         'name' => 'Whey Protein',
-                        'price_amount' => 2999,
+                        'price_amount' => '29.99',
                         'in_stock' => true,
                     ],
                 ],

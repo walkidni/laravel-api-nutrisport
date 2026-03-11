@@ -21,8 +21,8 @@ class Order extends Model
     public const STATUS = 'status';
     public const PAYMENT_METHOD = 'payment_method';
     public const DELIVERY_METHOD = 'delivery_method';
-    public const DELIVERY_AMOUNT = 'delivery_amount';
-    public const TOTAL_AMOUNT = 'total_amount';
+    public const DELIVERY_AMOUNT_CENTS = 'delivery_amount_cents';
+    public const TOTAL_AMOUNT_CENTS = 'total_amount_cents';
     public const FULL_NAME = 'full_name';
     public const FULL_ADDRESS = 'full_address';
     public const CITY = 'city';
@@ -36,8 +36,8 @@ class Order extends Model
         self::STATUS,
         self::PAYMENT_METHOD,
         self::DELIVERY_METHOD,
-        self::DELIVERY_AMOUNT,
-        self::TOTAL_AMOUNT,
+        self::DELIVERY_AMOUNT_CENTS,
+        self::TOTAL_AMOUNT_CENTS,
         self::FULL_NAME,
         self::FULL_ADDRESS,
         self::CITY,
@@ -51,8 +51,8 @@ class Order extends Model
             self::PAYMENT_METHOD => PaymentMethodEnum::class,
             self::DELIVERY_METHOD => DeliveryMethodEnum::class,
             self::REFERENCE_SEQUENCE => 'integer',
-            self::DELIVERY_AMOUNT => 'integer',
-            self::TOTAL_AMOUNT => 'integer',
+            self::DELIVERY_AMOUNT_CENTS => 'integer',
+            self::TOTAL_AMOUNT_CENTS => 'integer',
         ];
     }
 

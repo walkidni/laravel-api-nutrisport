@@ -32,7 +32,7 @@ class ShowCartTest extends TestCase
                 'data' => [
                     'lines' => [],
                     'item_count' => 0,
-                    'total_amount' => 0,
+                    'total_amount' => '0.00',
                 ],
             ]);
     }
@@ -61,7 +61,7 @@ class ShowCartTest extends TestCase
         DB::table('product_site_prices')->insert([
             ProductSitePrice::PRODUCT_ID => $productId,
             ProductSitePrice::SITE_ID => $siteId,
-            ProductSitePrice::PRICE_AMOUNT => 2999,
+            ProductSitePrice::PRICE_AMOUNT_CENTS => 2999,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -86,12 +86,12 @@ class ShowCartTest extends TestCase
                             'product_id' => $productId,
                             'name' => 'Whey Protein',
                             'quantity' => 2,
-                            'unit_price_amount' => 2999,
-                            'line_total_amount' => 5998,
+                            'unit_price_amount' => '29.99',
+                            'line_total_amount' => '59.98',
                         ],
                     ],
                     'item_count' => 1,
-                    'total_amount' => 5998,
+                    'total_amount' => '59.98',
                 ],
             ]);
     }

@@ -32,12 +32,12 @@ class AddCartItemTest extends TestCase
                             'product_id' => $productId,
                             'name' => 'Whey Protein',
                             'quantity' => 1,
-                            'unit_price_amount' => 2999,
-                            'line_total_amount' => 2999,
+                            'unit_price_amount' => '29.99',
+                            'line_total_amount' => '29.99',
                         ],
                     ],
                     'item_count' => 1,
-                    'total_amount' => 2999,
+                    'total_amount' => '29.99',
                 ],
             ]);
     }
@@ -66,12 +66,12 @@ class AddCartItemTest extends TestCase
                             'product_id' => $productId,
                             'name' => 'Whey Protein',
                             'quantity' => 3,
-                            'unit_price_amount' => 2999,
-                            'line_total_amount' => 8997,
+                            'unit_price_amount' => '29.99',
+                            'line_total_amount' => '89.97',
                         ],
                     ],
                     'item_count' => 1,
-                    'total_amount' => 8997,
+                    'total_amount' => '89.97',
                 ],
             ]);
     }
@@ -103,12 +103,12 @@ class AddCartItemTest extends TestCase
                         'product_id' => $productId,
                         'name' => 'Whey Protein',
                         'quantity' => 1,
-                        'unit_price_amount' => 2999,
-                        'line_total_amount' => 2999,
+                        'unit_price_amount' => '29.99',
+                        'line_total_amount' => '29.99',
                     ],
                 ],
                 'item_count' => 1,
-                'total_amount' => 2999,
+                'total_amount' => '29.99',
             ],
         ]);
     }
@@ -183,12 +183,12 @@ class AddCartItemTest extends TestCase
                             'product_id' => $productId,
                             'name' => 'Whey Protein',
                             'quantity' => 1,
-                            'unit_price_amount' => 2999,
-                            'line_total_amount' => 2999,
+                            'unit_price_amount' => '29.99',
+                            'line_total_amount' => '29.99',
                         ],
                     ],
                     'item_count' => 1,
-                    'total_amount' => 2999,
+                    'total_amount' => '29.99',
                 ],
             ]);
     }

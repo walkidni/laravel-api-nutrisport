@@ -14,12 +14,12 @@ class ProductSitePrice extends Model
 
     public const PRODUCT_ID = 'product_id';
     public const SITE_ID = 'site_id';
-    public const PRICE_AMOUNT = 'price_amount';
+    public const PRICE_AMOUNT_CENTS = 'price_amount_cents';
 
     protected $fillable = [
         self::PRODUCT_ID,
         self::SITE_ID,
-        self::PRICE_AMOUNT,
+        self::PRICE_AMOUNT_CENTS,
     ];
 
     protected static function newFactory(): ProductSitePriceFactory

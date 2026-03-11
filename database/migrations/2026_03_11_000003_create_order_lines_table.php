@@ -13,9 +13,9 @@ return new class extends Migration
             $table->foreignId('order_id')->constrained('orders')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained('products')->restrictOnDelete();
             $table->string('product_name');
-            $table->unsignedInteger('unit_price_amount');
+            $table->unsignedInteger('unit_price_amount_cents');
             $table->unsignedInteger('quantity');
-            $table->unsignedInteger('line_total_amount');
+            $table->unsignedInteger('line_total_amount_cents');
             $table->timestamps();
 
             $table->index(['order_id', 'product_id']);

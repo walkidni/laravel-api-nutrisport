@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
             $table->foreignId('site_id')->constrained('sites')->cascadeOnDelete();
-            $table->unsignedInteger('price_amount');
+            $table->unsignedInteger('price_amount_cents');
             $table->timestamps();
 
             $table->unique(['product_id', 'site_id']);

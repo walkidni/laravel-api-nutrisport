@@ -43,7 +43,7 @@ final class TestDataHelper
         DB::table('product_site_prices')->insert([
             ProductSitePrice::PRODUCT_ID => $productId,
             ProductSitePrice::SITE_ID => $siteId,
-            ProductSitePrice::PRICE_AMOUNT => 2999,
+            ProductSitePrice::PRICE_AMOUNT_CENTS => 2999,
             'created_at' => now(),
             'updated_at' => now(),
         ]);

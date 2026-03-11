@@ -42,7 +42,7 @@ class CheckoutTest extends TestCase
         DB::table('product_site_prices')->insert([
             ProductSitePrice::PRODUCT_ID => $productId,
             ProductSitePrice::SITE_ID => $siteId,
-            ProductSitePrice::PRICE_AMOUNT => 2999,
+            ProductSitePrice::PRICE_AMOUNT_CENTS => 2999,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -77,7 +77,9 @@ class CheckoutTest extends TestCase
             ])
             ->assertJsonPath('data.status', 'PENDING_PAYMENT')
             ->assertJsonPath('data.payment_method', 'BANK_TRANSFER')
-            ->assertJsonPath('data.delivery_method', 'HOME_DELIVERY');
+            ->assertJsonPath('data.delivery_method', 'HOME_DELIVERY')
+            ->assertJsonPath('data.delivery_amount', '0.00')
+            ->assertJsonPath('data.total_amount', '29.99');
 
         $this->assertIsArray($response->json('data.lines'));
         $this->assertMatchesRegularExpression('/^FR-\d{6}$/', (string) $response->json('data.reference'));

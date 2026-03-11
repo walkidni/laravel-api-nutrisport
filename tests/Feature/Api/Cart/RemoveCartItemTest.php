@@ -33,12 +33,12 @@ class RemoveCartItemTest extends TestCase
                             'product_id' => $products['creatine']['id'],
                             'name' => 'Creatine',
                             'quantity' => 2,
-                            'unit_price_amount' => 1999,
-                            'line_total_amount' => 3998,
+                            'unit_price_amount' => '19.99',
+                            'line_total_amount' => '39.98',
                         ],
                     ],
                     'item_count' => 1,
-                    'total_amount' => 3998,
+                    'total_amount' => '39.98',
                 ],
             ]);
     }
@@ -62,12 +62,12 @@ class RemoveCartItemTest extends TestCase
                             'product_id' => $products['whey']['id'],
                             'name' => 'Whey Protein',
                             'quantity' => 1,
-                            'unit_price_amount' => 2999,
-                            'line_total_amount' => 2999,
+                            'unit_price_amount' => '29.99',
+                            'line_total_amount' => '29.99',
                         ],
                     ],
                     'item_count' => 1,
-                    'total_amount' => 2999,
+                    'total_amount' => '29.99',
                 ],
             ]);
     }
@@ -88,7 +88,7 @@ class RemoveCartItemTest extends TestCase
                 'data' => [
                     'lines' => [],
                     'item_count' => 0,
-                    'total_amount' => 0,
+                    'total_amount' => '0.00',
                 ],
             ]);
 
@@ -100,13 +100,13 @@ class RemoveCartItemTest extends TestCase
                 'data' => [
                     'lines' => [],
                     'item_count' => 0,
-                    'total_amount' => 0,
+                    'total_amount' => '0.00',
                 ],
             ]);
     }
 
     /**
-     * @return array{string, array<string, array{id: int, price_amount: int}>}
+     * @return array{string, array<string, array{id: int, price_amount_cents: int}>}
      */
     private function seedCatalogForSite(string $siteCode): array
     {
@@ -137,14 +137,14 @@ class RemoveCartItemTest extends TestCase
             [
                 ProductSitePrice::PRODUCT_ID => $wheyId,
                 ProductSitePrice::SITE_ID => $siteId,
-                ProductSitePrice::PRICE_AMOUNT => 2999,
+                ProductSitePrice::PRICE_AMOUNT_CENTS => 2999,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 ProductSitePrice::PRODUCT_ID => $creatineId,
                 ProductSitePrice::SITE_ID => $siteId,
-                ProductSitePrice::PRICE_AMOUNT => 1999,
+                ProductSitePrice::PRICE_AMOUNT_CENTS => 1999,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -155,11 +155,11 @@ class RemoveCartItemTest extends TestCase
             [
                 'whey' => [
                     'id' => $wheyId,
-                    'price_amount' => 2999,
+                    'price_amount_cents' => 2999,
                 ],
                 'creatine' => [
                     'id' => $creatineId,
-                    'price_amount' => 1999,
+                    'price_amount_cents' => 1999,
                 ],
             ],
         ];

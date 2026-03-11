@@ -20,7 +20,7 @@ class ListProductsQuery
                 $product->qualifyColumn($productKeyName),
                 $product->qualifyColumn(Product::NAME),
                 $product->qualifyColumn(Product::STOCK),
-                $price->qualifyColumn(ProductSitePrice::PRICE_AMOUNT).' as '.ProductSitePrice::PRICE_AMOUNT,
+                $price->qualifyColumn(ProductSitePrice::PRICE_AMOUNT_CENTS).' as '.ProductSitePrice::PRICE_AMOUNT_CENTS,
             ])
             ->join(
                 $price->getTable(),
