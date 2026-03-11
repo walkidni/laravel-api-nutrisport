@@ -74,9 +74,13 @@ class CheckoutTest extends TestCase
                     'total_amount',
                     'lines',
                 ],
-            ]);
+            ])
+            ->assertJsonPath('data.status', 'PENDING_PAYMENT')
+            ->assertJsonPath('data.payment_method', 'BANK_TRANSFER')
+            ->assertJsonPath('data.delivery_method', 'HOME_DELIVERY');
 
         $this->assertIsArray($response->json('data.lines'));
+        $this->assertMatchesRegularExpression('/^FR-\d{6}$/', (string) $response->json('data.reference'));
     }
 
     private function issueCustomerAccessToken(Customer $customer, int $siteId): string
