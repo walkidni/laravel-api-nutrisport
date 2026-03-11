@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CustomerRefreshToken extends Model
 {
+    public const ID = 'id';
     public const CUSTOMER_ID = 'customer_id';
     public const SITE_ID = 'site_id';
     public const TOKEN_HASH = 'token_hash';

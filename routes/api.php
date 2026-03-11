@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('resolve.current.site')->group(function (): void {
     Route::post('/auth/login', [CustomerAuthController::class, 'login']);
+    Route::post('/auth/refresh', [CustomerAuthController::class, 'refresh']);
     Route::post('/auth/register', [CustomerAuthController::class, 'register']);
     Route::get('/cart', [CartController::class, 'show']);
     Route::post('/cart/items', [CartController::class, 'addItem']);

@@ -4,16 +4,20 @@ namespace App\Domain\Customers\Actions;
 
 use App\Domain\Customers\DTOs\CustomerAuthTokensDTO;
 use App\Domain\Customers\Models\Customer;
-use App\Domain\Customers\Models\CustomerRefreshToken;
+use App\Domain\Customers\Services\CustomerRefreshTokenService;
 use App\Domain\Shared\SiteContext\Site;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Tymon\JWTAuth\JWTGuard;
 
 class LoginCustomerAction
 {
+    public function __construct(
+        private readonly CustomerRefreshTokenService $customerRefreshTokenService,
+    ) {
+    }
+
     /**
      * @param array{email: string, password: string} $validated
      */
@@ -41,18 +45,7 @@ class LoginCustomerAction
             ])
             ->login($customer);
 
-        $refreshToken = Str::random(80);
-        $issuedAt = now();
-
-        CustomerRefreshToken::query()->create([
-            CustomerRefreshToken::CUSTOMER_ID => (int) $customer->getKey(),
-            CustomerRefreshToken::SITE_ID => (int) $site->getKey(),
-            CustomerRefreshToken::TOKEN_HASH => hash('sha256', $refreshToken),
-            CustomerRefreshToken::ISSUED_AT => $issuedAt,
-            CustomerRefreshToken::EXPIRES_AT => $issuedAt->copy()->addMinutes(config('auth.customers.refresh_token_ttl')),
-            CustomerRefreshToken::ABSOLUTE_EXPIRES_AT => $issuedAt->copy()->addMinutes(config('auth.customers.absolute_session_ttl')),
-            CustomerRefreshToken::REVOKED_AT => null,
-        ]);
+        [, $refreshToken] = $this->customerRefreshTokenService->issue($customer, $site);
 
         return new CustomerAuthTokensDTO($accessToken, $refreshToken);
     }
