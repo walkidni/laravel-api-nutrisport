@@ -4,10 +4,17 @@ namespace Tests\Feature\Api\Checkout;
 
 use App\Domain\Catalog\Models\Product;
 use App\Domain\Catalog\Models\ProductSitePrice;
+use App\Domain\Cart\Services\CartStorageService;
 use App\Domain\Customers\Models\Customer;
+use App\Domain\Orders\Enums\DeliveryMethodEnum;
+use App\Domain\Orders\Enums\OrderStatusEnum;
+use App\Domain\Orders\Enums\PaymentMethodEnum;
+use App\Domain\Orders\Models\Order;
+use App\Domain\Orders\Models\OrderLine;
 use App\Domain\Shared\SiteContext\Site;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\TestDataHelper;
 use Tests\TestCase;
@@ -83,6 +90,37 @@ class CheckoutTest extends TestCase
 
         $this->assertIsArray($response->json('data.lines'));
         $this->assertMatchesRegularExpression('/^FR-\d{6}$/', (string) $response->json('data.reference'));
+
+        $orderId = (int) $response->json('data.id');
+
+        $this->assertDatabaseHas('orders', [
+            Order::ID => $orderId,
+            Order::SITE_ID => $siteId,
+            Order::CUSTOMER_ID => $customer->getKey(),
+            Order::STATUS => OrderStatusEnum::PENDING_PAYMENT->value,
+            Order::PAYMENT_METHOD => PaymentMethodEnum::BANK_TRANSFER->value,
+            Order::DELIVERY_METHOD => DeliveryMethodEnum::HOME_DELIVERY->value,
+            Order::DELIVERY_AMOUNT_CENTS => 0,
+            Order::TOTAL_AMOUNT_CENTS => 2999,
+            Order::FULL_NAME => 'Marie Dupont',
+            Order::FULL_ADDRESS => '12 Rue de Paris',
+            Order::CITY => 'Paris',
+            Order::COUNTRY => 'France',
+        ]);
+
+        $this->assertDatabaseHas('order_lines', [
+            OrderLine::ORDER_ID => $orderId,
+            OrderLine::PRODUCT_ID => $productId,
+            OrderLine::PRODUCT_NAME => 'Whey Protein',
+            OrderLine::UNIT_PRICE_AMOUNT_CENTS => 2999,
+            OrderLine::QUANTITY => 1,
+            OrderLine::LINE_TOTAL_AMOUNT_CENTS => 2999,
+        ]);
+
+        $this->assertSame(9, Product::query()->whereKey($productId)->value(Product::STOCK));
+        $this->assertNull(
+            Cache::get(app(CartStorageService::class)->makeKey('fr', $cartToken)),
+        );
     }
 
     private function issueCustomerAccessToken(Customer $customer, int $siteId): string

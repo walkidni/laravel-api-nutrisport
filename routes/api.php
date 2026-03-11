@@ -15,7 +15,7 @@ Route::middleware('resolve.current.site')->group(function (): void {
     Route::post('/cart/items', [CartController::class, 'addItem']);
     Route::patch('/cart/items/{product}', [CartController::class, 'setItemQuantity']);
     Route::delete('/cart/items/{product}', [CartController::class, 'removeItem']);
-    Route::post('/checkout', [CheckoutController::class, 'store']);
+    Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('auth:customer');
     Route::get('/products', [CatalogController::class, 'index']);
     Route::get('/products/{product}', [CatalogController::class, 'show']);
 });
