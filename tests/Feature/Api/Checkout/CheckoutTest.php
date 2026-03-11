@@ -264,6 +264,53 @@ class CheckoutTest extends TestCase
         );
     }
 
+    public function test_rejects_checkout_on_a_different_resolved_site(): void
+    {
+        [$siteId, $siteDomain] = TestDataHelper::seedSite('fr');
+        [, $otherSiteDomain] = TestDataHelper::seedSite('it');
+
+        $customer = Customer::factory()->create([
+            Customer::SITE_ID => $siteId,
+        ]);
+
+        $productId = DB::table('products')->insertGetId([
+            Product::NAME => 'Whey Protein',
+            Product::STOCK => 10,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('product_site_prices')->insert([
+            ProductSitePrice::PRODUCT_ID => $productId,
+            ProductSitePrice::SITE_ID => $siteId,
+            ProductSitePrice::PRICE_AMOUNT_CENTS => 2999,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $cartToken = (string) $this->postJson("http://{$siteDomain}/v1/cart/items", [
+            'product_id' => $productId,
+            'quantity' => 1,
+        ])->headers->get((string) config('cart.token_header'));
+
+        $this->withToken($this->issueCustomerAccessToken($customer, $siteId))
+            ->withHeader((string) config('cart.token_header'), $cartToken)
+            ->postJson("http://{$otherSiteDomain}/v1/checkout", [
+                'full_name' => 'Marie Dupont',
+                'full_address' => '12 Rue de Paris',
+                'city' => 'Paris',
+                'country' => 'France',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('order_lines', 0);
+        $this->assertSame(10, Product::query()->whereKey($productId)->value(Product::STOCK));
+        $this->assertNotNull(
+            Cache::get(app(CartStorageService::class)->makeKey('fr', $cartToken)),
+        );
+    }
+
     private function issueCustomerAccessToken(Customer $customer, int $siteId): string
     {
         /** @var JWTGuard $guard */
