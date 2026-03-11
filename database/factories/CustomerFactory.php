@@ -18,6 +18,8 @@ class CustomerFactory extends Factory
     {
         return [
             Customer::SITE_ID => Site::factory(),
+            Customer::FIRST_NAME => $this->faker->firstName(),
+            Customer::LAST_NAME => $this->faker->lastName(),
             Customer::EMAIL => $this->faker->safeEmail(),
             Customer::PASSWORD => Hash::make('password'),
         ];

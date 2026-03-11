@@ -17,11 +17,15 @@ class Customer extends Authenticatable implements JWTSubject
 
     public const ID = 'id';
     public const SITE_ID = 'site_id';
+    public const FIRST_NAME = 'first_name';
+    public const LAST_NAME = 'last_name';
     public const EMAIL = 'email';
     public const PASSWORD = 'password';
 
     protected $fillable = [
         self::SITE_ID,
+        self::FIRST_NAME,
+        self::LAST_NAME,
         self::EMAIL,
         self::PASSWORD,
     ];
