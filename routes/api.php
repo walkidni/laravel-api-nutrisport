@@ -17,6 +17,7 @@ Route::middleware('resolve.current.site')->group(function (): void {
     Route::patch('/me', [CustomerProfileController::class, 'update'])->middleware('auth:customer');
     Route::put('/me/password', [CustomerProfileController::class, 'updatePassword'])->middleware('auth:customer');
     Route::get('/me/orders', [CustomerProfileController::class, 'indexOrders'])->middleware('auth:customer');
+    Route::get('/me/orders/{order}', [CustomerProfileController::class, 'showOrder'])->middleware('auth:customer');
     Route::get('/cart', [CartController::class, 'show']);
     Route::post('/cart/items', [CartController::class, 'addItem']);
     Route::patch('/cart/items/{product}', [CartController::class, 'setItemQuantity']);

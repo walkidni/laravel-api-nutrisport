@@ -27,6 +27,7 @@ class Order extends Model
     public const FULL_ADDRESS = 'full_address';
     public const CITY = 'city';
     public const COUNTRY = 'country';
+    public const CREATED_AT = 'created_at';
 
     protected $fillable = [
         self::SITE_ID,
