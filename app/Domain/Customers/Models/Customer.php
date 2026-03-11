@@ -15,6 +15,7 @@ class Customer extends Authenticatable implements JWTSubject
     /** @use HasFactory<CustomerFactory> */
     use HasFactory;
 
+    public const ID = 'id';
     public const SITE_ID = 'site_id';
     public const EMAIL = 'email';
     public const PASSWORD = 'password';

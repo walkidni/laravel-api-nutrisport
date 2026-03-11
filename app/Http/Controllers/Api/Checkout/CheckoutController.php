@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Checkout;
 
 use App\Domain\Customers\Models\Customer;
 use App\Domain\Orders\Actions\CheckoutAction;
+use App\Domain\Orders\Exceptions\CheckoutException;
 use App\Domain\Shared\SiteContext\CurrentSiteContextService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Checkout\CheckoutRequest;
@@ -32,12 +33,18 @@ class CheckoutController extends Controller
             throw new AuthorizationException();
         }
 
-        $checkoutResult = $checkoutAction(
-            $site,
-            $customer,
-            $request,
-            $request->validated(),
-        );
+        try {
+            $checkoutResult = $checkoutAction(
+                $site,
+                $customer,
+                $request,
+                $request->validated(),
+            );
+        } catch (CheckoutException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 422);
+        }
 
         return CheckoutResultResource::make($checkoutResult)
             ->response()

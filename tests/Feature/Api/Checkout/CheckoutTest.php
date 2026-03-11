@@ -123,6 +123,137 @@ class CheckoutTest extends TestCase
         );
     }
 
+    public function test_returns_a_validation_error_when_checkout_is_attempted_with_an_empty_cart(): void
+    {
+        [$siteId, $siteDomain] = TestDataHelper::seedSite('fr');
+
+        $customer = Customer::factory()->create([
+            Customer::SITE_ID => $siteId,
+        ]);
+
+        $response = $this->withToken($this->issueCustomerAccessToken($customer, $siteId))
+            ->postJson("http://{$siteDomain}/v1/checkout", [
+                'full_name' => 'Marie Dupont',
+                'full_address' => '12 Rue de Paris',
+                'city' => 'Paris',
+                'country' => 'France',
+            ]);
+
+        $response
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'Checkout requires a non-empty cart.');
+
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('order_lines', 0);
+    }
+
+    public function test_returns_a_validation_error_when_stock_changed_since_the_cart_was_built(): void
+    {
+        [$siteId, $siteDomain] = TestDataHelper::seedSite('fr');
+
+        $customer = Customer::factory()->create([
+            Customer::SITE_ID => $siteId,
+        ]);
+
+        $productId = DB::table('products')->insertGetId([
+            Product::NAME => 'Whey Protein',
+            Product::STOCK => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('product_site_prices')->insert([
+            ProductSitePrice::PRODUCT_ID => $productId,
+            ProductSitePrice::SITE_ID => $siteId,
+            ProductSitePrice::PRICE_AMOUNT_CENTS => 2999,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $cartToken = (string) $this->postJson("http://{$siteDomain}/v1/cart/items", [
+            'product_id' => $productId,
+            'quantity' => 1,
+        ])->headers->get((string) config('cart.token_header'));
+
+        Product::query()->whereKey($productId)->update([
+            Product::STOCK => 0,
+        ]);
+
+        $response = $this->withToken($this->issueCustomerAccessToken($customer, $siteId))
+            ->withHeader((string) config('cart.token_header'), $cartToken)
+            ->postJson("http://{$siteDomain}/v1/checkout", [
+                'full_name' => 'Marie Dupont',
+                'full_address' => '12 Rue de Paris',
+                'city' => 'Paris',
+                'country' => 'France',
+            ]);
+
+        $response
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'Requested quantity exceeds available stock.');
+
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('order_lines', 0);
+        $this->assertSame(0, Product::query()->whereKey($productId)->value(Product::STOCK));
+        $this->assertNotNull(
+            Cache::get(app(CartStorageService::class)->makeKey('fr', $cartToken)),
+        );
+    }
+
+    public function test_returns_a_validation_error_when_a_cart_line_is_no_longer_available_for_checkout(): void
+    {
+        [$siteId, $siteDomain] = TestDataHelper::seedSite('fr');
+
+        $customer = Customer::factory()->create([
+            Customer::SITE_ID => $siteId,
+        ]);
+
+        $productId = DB::table('products')->insertGetId([
+            Product::NAME => 'Whey Protein',
+            Product::STOCK => 10,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('product_site_prices')->insert([
+            ProductSitePrice::PRODUCT_ID => $productId,
+            ProductSitePrice::SITE_ID => $siteId,
+            ProductSitePrice::PRICE_AMOUNT_CENTS => 2999,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $cartToken = (string) $this->postJson("http://{$siteDomain}/v1/cart/items", [
+            'product_id' => $productId,
+            'quantity' => 1,
+        ])->headers->get((string) config('cart.token_header'));
+
+        DB::table('product_site_prices')
+            ->where(ProductSitePrice::PRODUCT_ID, $productId)
+            ->where(ProductSitePrice::SITE_ID, $siteId)
+            ->delete();
+
+        $response = $this->withToken($this->issueCustomerAccessToken($customer, $siteId))
+            ->withHeader((string) config('cart.token_header'), $cartToken)
+            ->postJson("http://{$siteDomain}/v1/checkout", [
+                'full_name' => 'Marie Dupont',
+                'full_address' => '12 Rue de Paris',
+                'city' => 'Paris',
+                'country' => 'France',
+            ]);
+
+        $response
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'One or more cart items are no longer available for checkout.');
+
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('order_lines', 0);
+        $this->assertSame(10, Product::query()->whereKey($productId)->value(Product::STOCK));
+        $this->assertNotNull(
+            Cache::get(app(CartStorageService::class)->makeKey('fr', $cartToken)),
+        );
+    }
+
     private function issueCustomerAccessToken(Customer $customer, int $siteId): string
     {
         /** @var JWTGuard $guard */

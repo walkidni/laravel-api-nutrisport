@@ -11,6 +11,7 @@ use App\Domain\Orders\DTOs\CheckoutResultDTO;
 use App\Domain\Orders\Enums\DeliveryMethodEnum;
 use App\Domain\Orders\Enums\OrderStatusEnum;
 use App\Domain\Orders\Enums\PaymentMethodEnum;
+use App\Domain\Orders\Exceptions\CheckoutException;
 use App\Domain\Orders\Models\Order;
 use App\Domain\Orders\Models\OrderLine;
 use App\Domain\Orders\Services\OrderReferenceService;
@@ -40,38 +41,54 @@ class CheckoutAction
         $cartToken = $this->cartStateService->resolveTokenFromRequest($request);
         $cartLines = $this->cartStateService->loadLines($siteCode, $cartToken);
 
+        if ($cartLines === []) {
+            throw CheckoutException::emptyCart();
+        }
+
         /** @var CheckoutResultDTO $checkoutResult */
         $checkoutResult = DB::transaction(function () use ($site, $customer, $validated, $cartLines): CheckoutResultDTO {
-            $quantitiesByProductId = [];
+            $productModel = new Product();
+            $productSitePriceModel = new ProductSitePrice();
+            $cartQuantitiesByProductId = [];
 
             foreach ($cartLines as $line) {
-                $quantitiesByProductId[$line['product_id']] = $line['quantity'];
+                $cartQuantitiesByProductId[$line['product_id']] = $line['quantity'];
             }
 
             $pricedProducts = Product::query()
                 ->join(
-                    'product_site_prices',
-                    'product_site_prices.product_id',
+                    $productSitePriceModel->getTable(),
+                    $productSitePriceModel->qualifyColumn(ProductSitePrice::PRODUCT_ID),
                     '=',
-                    'products.id',
+                    $productModel->qualifyColumn(Product::ID),
                 )
-                ->where('product_site_prices.site_id', $site->getKey())
-                ->whereIn('products.id', array_keys($quantitiesByProductId))
+                ->where($productSitePriceModel->qualifyColumn(ProductSitePrice::SITE_ID), $site->getKey())
+                ->whereIn($productModel->qualifyColumn(Product::ID), array_keys($cartQuantitiesByProductId))
                 ->lockForUpdate()
                 ->get([
-                    'products.id as product_id',
-                    'products.name',
-                    'products.'.Product::STOCK.' as product_stock',
-                    'product_site_prices.'.ProductSitePrice::PRICE_AMOUNT_CENTS.' as unit_price_amount_cents',
+                    $productModel->qualifyColumn(Product::ID).' as product_id',
+                    $productModel->qualifyColumn(Product::NAME),
+                    $productModel->qualifyColumn(Product::STOCK).' as product_stock',
+                    $productSitePriceModel->qualifyColumn(ProductSitePrice::PRICE_AMOUNT_CENTS).' as unit_price_amount_cents',
                 ])
                 ->keyBy('product_id');
+
+            if ($pricedProducts->count() !== count($cartQuantitiesByProductId)) {
+                throw CheckoutException::unavailableCartLine();
+            }
 
             $orderLines = [];
             $totalAmountCents = 0;
 
-            foreach ($quantitiesByProductId as $productId => $quantity) {
+            foreach ($cartQuantitiesByProductId as $productId => $quantity) {
                 /** @var Product $pricedProduct */
                 $pricedProduct = $pricedProducts->get($productId);
+
+                $availableStock = (int) $pricedProduct->getAttribute('product_stock');
+
+                if ($quantity > $availableStock) {
+                    throw CheckoutException::stockMismatch();
+                }
 
                 $unitPriceAmountCents = (int) $pricedProduct->getAttribute('unit_price_amount_cents');
                 $lineTotalAmountCents = $unitPriceAmountCents * $quantity;

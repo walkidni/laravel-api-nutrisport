@@ -12,6 +12,7 @@ class Product extends Model
     /** @use HasFactory<ProductFactory> */
     use HasFactory;
 
+    public const ID = 'id';
     public const NAME = 'name';
     public const STOCK = 'stock';
 

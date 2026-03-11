@@ -12,6 +12,7 @@ class Site extends Model
     /** @use HasFactory<SiteFactory> */
     use HasFactory;
 
+    public const ID = 'id';
     public const CODE = 'code';
     public const DOMAIN = 'domain';
 

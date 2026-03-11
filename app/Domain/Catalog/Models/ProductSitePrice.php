@@ -12,6 +12,7 @@ class ProductSitePrice extends Model
     /** @use HasFactory<ProductSitePriceFactory> */
     use HasFactory;
 
+    public const ID = 'id';
     public const PRODUCT_ID = 'product_id';
     public const SITE_ID = 'site_id';
     public const PRICE_AMOUNT_CENTS = 'price_amount_cents';
