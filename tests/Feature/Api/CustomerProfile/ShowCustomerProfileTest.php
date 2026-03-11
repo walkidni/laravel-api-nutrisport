@@ -6,6 +6,7 @@ use App\Domain\Customers\Models\Customer;
 use App\Domain\Shared\SiteContext\Site;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Tests\Support\TestDataHelper;
 use Tests\TestCase;
 use Tymon\JWTAuth\JWTGuard;
@@ -110,6 +111,74 @@ class ShowCustomerProfileTest extends TestCase
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(Customer::EMAIL);
+    }
+
+    public function test_updates_the_authenticated_customer_password_and_returns_no_content(): void
+    {
+        [$siteId, $siteDomain] = TestDataHelper::seedSite('fr');
+
+        $customer = Customer::factory()->create([
+            Customer::SITE_ID => $siteId,
+            Customer::PASSWORD => Hash::make('current-password'),
+        ]);
+
+        $this->withToken($this->issueCustomerAccessToken($customer, $siteId))
+            ->putJson("http://{$siteDomain}/v1/me/password", [
+                'current_password' => 'current-password',
+                Customer::PASSWORD => 'new-password',
+                'password_confirmation' => 'new-password',
+            ])
+            ->assertNoContent();
+
+        $customer->refresh();
+
+        $this->assertTrue(Hash::check('new-password', $customer->getAttribute(Customer::PASSWORD)));
+    }
+
+    public function test_rejects_updating_the_customer_password_with_a_wrong_current_password(): void
+    {
+        [$siteId, $siteDomain] = TestDataHelper::seedSite('fr');
+
+        $customer = Customer::factory()->create([
+            Customer::SITE_ID => $siteId,
+            Customer::PASSWORD => Hash::make('current-password'),
+        ]);
+
+        $this->withToken($this->issueCustomerAccessToken($customer, $siteId))
+            ->putJson("http://{$siteDomain}/v1/me/password", [
+                'current_password' => 'wrong-password',
+                Customer::PASSWORD => 'new-password',
+                'password_confirmation' => 'new-password',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('current_password');
+
+        $customer->refresh();
+
+        $this->assertTrue(Hash::check('current-password', $customer->getAttribute(Customer::PASSWORD)));
+    }
+
+    public function test_rejects_updating_the_customer_password_on_a_different_resolved_site(): void
+    {
+        [$siteId] = TestDataHelper::seedSite('fr');
+        [, $otherSiteDomain] = TestDataHelper::seedSite('it');
+
+        $customer = Customer::factory()->create([
+            Customer::SITE_ID => $siteId,
+            Customer::PASSWORD => Hash::make('current-password'),
+        ]);
+
+        $this->withToken($this->issueCustomerAccessToken($customer, $siteId))
+            ->putJson("http://{$otherSiteDomain}/v1/me/password", [
+                'current_password' => 'current-password',
+                Customer::PASSWORD => 'new-password',
+                'password_confirmation' => 'new-password',
+            ])
+            ->assertForbidden();
+
+        $customer->refresh();
+
+        $this->assertTrue(Hash::check('current-password', $customer->getAttribute(Customer::PASSWORD)));
     }
 
     private function issueCustomerAccessToken(Customer $customer, int $siteId): string
