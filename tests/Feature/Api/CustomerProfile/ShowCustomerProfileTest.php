@@ -42,7 +42,74 @@ class ShowCustomerProfileTest extends TestCase
                 ],
             ])
             ->assertJsonPath('data.id', $customer->getKey())
+            ->assertJsonPath('data.first_name', $customer->getAttribute(Customer::FIRST_NAME))
+            ->assertJsonPath('data.last_name', $customer->getAttribute(Customer::LAST_NAME))
             ->assertJsonPath('data.email', 'customer@example.com');
+    }
+
+    public function test_rejects_showing_the_profile_on_a_different_resolved_site(): void
+    {
+        [$siteId] = TestDataHelper::seedSite('fr');
+        [, $otherSiteDomain] = TestDataHelper::seedSite('it');
+
+        $customer = Customer::factory()->create([
+            Customer::SITE_ID => $siteId,
+            Customer::EMAIL => 'customer@example.com',
+        ]);
+
+        $this->withToken($this->issueCustomerAccessToken($customer, $siteId))
+            ->getJson("http://{$otherSiteDomain}/v1/me")
+            ->assertForbidden();
+    }
+
+    public function test_updates_the_authenticated_customer_profile_with_partial_fields(): void
+    {
+        [$siteId, $siteDomain] = TestDataHelper::seedSite('fr');
+
+        $customer = Customer::factory()->create([
+            Customer::SITE_ID => $siteId,
+            Customer::FIRST_NAME => 'Alice',
+            Customer::LAST_NAME => 'Runner',
+            Customer::EMAIL => 'customer@example.com',
+        ]);
+
+        $this->withToken($this->issueCustomerAccessToken($customer, $siteId))
+            ->patchJson("http://{$siteDomain}/v1/me", [
+                Customer::FIRST_NAME => 'Alicia',
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.id', $customer->getKey())
+            ->assertJsonPath('data.first_name', 'Alicia')
+            ->assertJsonPath('data.last_name', 'Runner')
+            ->assertJsonPath('data.email', 'customer@example.com');
+
+        $customer->refresh();
+
+        $this->assertSame('Alicia', $customer->getAttribute(Customer::FIRST_NAME));
+        $this->assertSame('Runner', $customer->getAttribute(Customer::LAST_NAME));
+        $this->assertSame('customer@example.com', $customer->getAttribute(Customer::EMAIL));
+    }
+
+    public function test_rejects_updating_the_email_to_one_already_used_on_the_same_site(): void
+    {
+        [$siteId, $siteDomain] = TestDataHelper::seedSite('fr');
+
+        $customer = Customer::factory()->create([
+            Customer::SITE_ID => $siteId,
+            Customer::EMAIL => 'customer@example.com',
+        ]);
+
+        Customer::factory()->create([
+            Customer::SITE_ID => $siteId,
+            Customer::EMAIL => 'taken@example.com',
+        ]);
+
+        $this->withToken($this->issueCustomerAccessToken($customer, $siteId))
+            ->patchJson("http://{$siteDomain}/v1/me", [
+                Customer::EMAIL => 'taken@example.com',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(Customer::EMAIL);
     }
 
     private function issueCustomerAccessToken(Customer $customer, int $siteId): string

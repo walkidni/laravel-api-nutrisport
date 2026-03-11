@@ -2,20 +2,19 @@
 
 namespace App\Http\Controllers\Api\Checkout;
 
-use App\Domain\Customers\Models\Customer;
 use App\Domain\Orders\Actions\CheckoutAction;
 use App\Domain\Orders\Exceptions\CheckoutException;
+use App\Domain\Customers\Services\CurrentCustomerContextService;
 use App\Domain\Shared\SiteContext\CurrentSiteContextService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Checkout\CheckoutRequest;
 use App\Http\Resources\Api\Checkout\CheckoutResultResource;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
 
 class CheckoutController extends Controller
 {
     public function __construct(
+        private readonly CurrentCustomerContextService $currentCustomerContextService,
         private readonly CurrentSiteContextService $currentSiteContextService,
     ) {
     }
@@ -24,14 +23,8 @@ class CheckoutController extends Controller
         CheckoutRequest $request,
         CheckoutAction $checkoutAction,
     ): JsonResponse {
+        $customer = $this->currentCustomerContextService->getForResolvedSite($request);
         $site = $this->currentSiteContextService->get($request);
-
-        /** @var Customer|null $customer */
-        $customer = Auth::guard('customer')->user();
-
-        if (! $customer instanceof Customer || (int) $customer->getAttribute(Customer::SITE_ID) !== (int) $site->getKey()) {
-            throw new AuthorizationException();
-        }
 
         try {
             $checkoutResult = $checkoutAction(
