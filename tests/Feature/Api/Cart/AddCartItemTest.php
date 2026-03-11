@@ -3,10 +3,9 @@
 namespace Tests\Feature\Api\Cart;
 
 use App\Domain\Catalog\Models\Product;
-use App\Domain\Catalog\Models\ProductSitePrice;
-use App\Domain\Shared\SiteContext\Site;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Tests\Support\TestDataHelper;
 use Tests\TestCase;
 
 class AddCartItemTest extends TestCase
@@ -15,7 +14,7 @@ class AddCartItemTest extends TestCase
 
     public function test_adds_a_product_to_the_cart_and_returns_the_created_cart(): void
     {
-        [$siteDomain, $productId] = $this->seedCatalogForSite('fr');
+        [$siteDomain, $productId] = TestDataHelper::seedSingleProductCatalogForSite('fr');
         $tokenHeader = (string) config('cart.token_header');
 
         $response = $this->postJson("http://{$siteDomain}/v1/cart/items", [
@@ -45,7 +44,7 @@ class AddCartItemTest extends TestCase
 
     public function test_adding_the_same_product_again_increments_its_quantity(): void
     {
-        [$siteDomain, $productId] = $this->seedCatalogForSite('fr');
+        [$siteDomain, $productId] = TestDataHelper::seedSingleProductCatalogForSite('fr');
         $tokenHeader = (string) config('cart.token_header');
 
         $token = $this->postJson("http://{$siteDomain}/v1/cart/items", [
@@ -79,7 +78,7 @@ class AddCartItemTest extends TestCase
 
     public function test_add_with_an_unknown_cart_token_returns_a_new_backend_issued_token(): void
     {
-        [$siteDomain, $productId] = $this->seedCatalogForSite('fr');
+        [$siteDomain, $productId] = TestDataHelper::seedSingleProductCatalogForSite('fr');
         $tokenHeader = (string) config('cart.token_header');
         $unknownToken = 'unknown-cart-token';
 
@@ -116,7 +115,7 @@ class AddCartItemTest extends TestCase
 
     public function test_returns_a_validation_error_when_the_requested_quantity_exceeds_available_stock(): void
     {
-        [$siteDomain, $productId] = $this->seedCatalogForSite('fr', 2);
+        [$siteDomain, $productId] = TestDataHelper::seedSingleProductCatalogForSite('fr', 2);
 
         $this->postJson("http://{$siteDomain}/v1/cart/items", [
             'product_id' => $productId,
@@ -130,7 +129,7 @@ class AddCartItemTest extends TestCase
 
     public function test_returns_a_validation_error_when_the_final_quantity_exceeds_available_stock(): void
     {
-        [$siteDomain, $productId] = $this->seedCatalogForSite('fr', 2);
+        [$siteDomain, $productId] = TestDataHelper::seedSingleProductCatalogForSite('fr', 2);
         $tokenHeader = (string) config('cart.token_header');
 
         $token = $this->postJson("http://{$siteDomain}/v1/cart/items", [
@@ -151,7 +150,7 @@ class AddCartItemTest extends TestCase
 
     public function test_failing_to_add_an_unpriced_product_does_not_mutate_the_existing_cart(): void
     {
-        [$siteDomain, $productId] = $this->seedCatalogForSite('fr');
+        [$siteDomain, $productId] = TestDataHelper::seedSingleProductCatalogForSite('fr');
         $tokenHeader = (string) config('cart.token_header');
 
         $token = $this->postJson("http://{$siteDomain}/v1/cart/items", [
@@ -194,35 +193,4 @@ class AddCartItemTest extends TestCase
             ]);
     }
 
-    /**
-     * @return array{string, int}
-     */
-    private function seedCatalogForSite(string $siteCode, int $stock = 10): array
-    {
-        $siteDomain = (string) config("sites.domains.{$siteCode}");
-
-        $siteId = DB::table('sites')->insertGetId([
-            Site::CODE => $siteCode,
-            Site::DOMAIN => $siteDomain,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        $productId = DB::table('products')->insertGetId([
-            Product::NAME => 'Whey Protein',
-            Product::STOCK => $stock,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        DB::table('product_site_prices')->insert([
-            ProductSitePrice::PRODUCT_ID => $productId,
-            ProductSitePrice::SITE_ID => $siteId,
-            ProductSitePrice::PRICE_AMOUNT => 2999,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        return [$siteDomain, $productId];
-    }
 }

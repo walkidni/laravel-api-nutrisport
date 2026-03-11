@@ -2,11 +2,8 @@
 
 namespace Tests\Feature\Api\Cart;
 
-use App\Domain\Catalog\Models\Product;
-use App\Domain\Catalog\Models\ProductSitePrice;
-use App\Domain\Shared\SiteContext\Site;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
+use Tests\Support\TestDataHelper;
 use Tests\TestCase;
 
 class UpdateCartItemQuantityTest extends TestCase
@@ -15,7 +12,7 @@ class UpdateCartItemQuantityTest extends TestCase
 
     public function test_returns_the_current_empty_cart_when_no_cart_exists(): void
     {
-        [$siteDomain, $productId] = $this->seedCatalogForSite('fr');
+        [$siteDomain, $productId] = TestDataHelper::seedSingleProductCatalogForSite('fr');
 
         $this->patchJson("http://{$siteDomain}/v1/cart/items/{$productId}", [
             'quantity' => 2,
@@ -33,7 +30,7 @@ class UpdateCartItemQuantityTest extends TestCase
 
     public function test_sets_the_absolute_quantity_for_a_cart_line(): void
     {
-        [$siteDomain, $productId] = $this->seedCatalogForSite('fr');
+        [$siteDomain, $productId] = TestDataHelper::seedSingleProductCatalogForSite('fr');
         $tokenHeader = (string) config('cart.token_header');
         $token = $this->createCartWithOneItem($siteDomain, $productId);
 
@@ -62,7 +59,7 @@ class UpdateCartItemQuantityTest extends TestCase
 
     public function test_quantity_zero_removes_the_line_from_the_cart(): void
     {
-        [$siteDomain, $productId] = $this->seedCatalogForSite('fr');
+        [$siteDomain, $productId] = TestDataHelper::seedSingleProductCatalogForSite('fr');
         $tokenHeader = (string) config('cart.token_header');
         $token = $this->createCartWithOneItem($siteDomain, $productId);
 
@@ -83,7 +80,7 @@ class UpdateCartItemQuantityTest extends TestCase
 
     public function test_returns_a_validation_error_when_the_updated_quantity_exceeds_available_stock(): void
     {
-        [$siteDomain, $productId] = $this->seedCatalogForSite('fr', 2);
+        [$siteDomain, $productId] = TestDataHelper::seedSingleProductCatalogForSite('fr', 2);
         $tokenHeader = (string) config('cart.token_header');
         $token = $this->createCartWithOneItem($siteDomain, $productId);
 
@@ -95,38 +92,6 @@ class UpdateCartItemQuantityTest extends TestCase
             ->assertExactJson([
                 'message' => 'Requested quantity exceeds available stock.',
             ]);
-    }
-
-    /**
-     * @return array{string, int}
-     */
-    private function seedCatalogForSite(string $siteCode, int $stock = 10): array
-    {
-        $siteDomain = (string) config("sites.domains.{$siteCode}");
-
-        $siteId = DB::table('sites')->insertGetId([
-            Site::CODE => $siteCode,
-            Site::DOMAIN => $siteDomain,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        $productId = DB::table('products')->insertGetId([
-            Product::NAME => 'Whey Protein',
-            Product::STOCK => $stock,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        DB::table('product_site_prices')->insert([
-            ProductSitePrice::PRODUCT_ID => $productId,
-            ProductSitePrice::SITE_ID => $siteId,
-            ProductSitePrice::PRICE_AMOUNT => 2999,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        return [$siteDomain, $productId];
     }
 
     private function createCartWithOneItem(string $siteDomain, int $productId): string
