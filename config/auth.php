@@ -45,6 +45,11 @@ return [
             'driver' => 'jwt',
             'provider' => 'customers',
         ],
+
+        'backoffice' => [
+            'driver' => 'jwt',
+            'provider' => 'backoffice_agents',
+        ],
     ],
 
     /*
@@ -73,6 +78,11 @@ return [
         'customers' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_CUSTOMER_MODEL', App\Domain\Customers\Models\Customer::class),
+        ],
+
+        'backoffice_agents' => [
+            'driver' => 'eloquent',
+            'model' => env('AUTH_BACKOFFICE_AGENT_MODEL', App\Domain\Backoffice\Models\BackofficeAgent::class),
         ],
     ],
 
@@ -115,6 +125,12 @@ return [
         'access_token_ttl' => (int) env('AUTH_CUSTOMER_ACCESS_TOKEN_TTL', 15),
         'refresh_token_ttl' => (int) env('AUTH_CUSTOMER_REFRESH_TOKEN_TTL', 360),
         'absolute_session_ttl' => (int) env('AUTH_CUSTOMER_ABSOLUTE_SESSION_TTL', 360),
+    ],
+
+    'backoffice' => [
+        'access_token_ttl' => (int) env('AUTH_BACKOFFICE_ACCESS_TOKEN_TTL', 15),
+        'refresh_token_ttl' => (int) env('AUTH_BACKOFFICE_REFRESH_TOKEN_TTL', 480),
+        'absolute_session_ttl' => (int) env('AUTH_BACKOFFICE_ABSOLUTE_SESSION_TTL', 480),
     ],
 
     /*
