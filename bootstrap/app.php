@@ -11,6 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         apiPrefix: 'v1',
         health: '/up',
     )
+    ->withBroadcasting(
+        __DIR__.'/../routes/channels.php',
+        ['middleware' => ['auth:backoffice']],
+    )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'resolve.current.site' => ResolveCurrentSite::class,
