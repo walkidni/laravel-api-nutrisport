@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Reporting\Jobs\SendDailyReportJob;
 use App\Http\Middleware\ResolveCurrentSite;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
@@ -17,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ['middleware' => ['auth:backoffice']],
     )
     ->withSchedule(function (Schedule $schedule): void {
-        //
+        $schedule->job(SendDailyReportJob::class)->dailyAt('00:00');
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

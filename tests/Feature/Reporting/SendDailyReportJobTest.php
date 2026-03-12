@@ -205,10 +205,10 @@ class SendDailyReportJobTest extends TestCase
                     'CA par site',
                 ]);
                 $mail->assertSeeInText('Date : 11 mars 2026');
-                $mail->assertSeeInText('Produit le plus vendu : none');
-                $mail->assertSeeInText('Produit le moins vendu : none');
-                $mail->assertSeeInText('Produit au CA maximum : none');
-                $mail->assertSeeInText('Produit au CA minimum : none');
+                $mail->assertSeeInText('Produit le plus vendu : aucun');
+                $mail->assertSeeInText('Produit le moins vendu : aucun');
+                $mail->assertSeeInText('Produit au CA maximum : aucun');
+                $mail->assertSeeInText('Produit au CA minimum : aucun');
                 $mail->assertSeeInText('FR : 0.00');
                 $mail->assertSeeInText('IT : 0.00');
                 $mail->assertSeeInText('BE : 0.00');
