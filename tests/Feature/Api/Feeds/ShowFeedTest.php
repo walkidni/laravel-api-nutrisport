@@ -30,6 +30,14 @@ class ShowFeedTest extends TestCase
             ]);
     }
 
+    public function test_returns_not_found_for_an_unsupported_feed_format(): void
+    {
+        $siteDomain = $this->seedFeedProductForSite('fr');
+
+        $this->getJson("http://{$siteDomain}/v1/feeds/csv")
+            ->assertNotFound();
+    }
+
     private function seedFeedProductForSite(string $siteCode): string
     {
         $siteDomain = (string) config("sites.domains.{$siteCode}");
