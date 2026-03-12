@@ -8,10 +8,10 @@ interface FeedRenderer
 {
     public function format(): string;
 
+    public function contentType(): string;
+
     /**
      * @param array<int, FeedProductDTO> $products
-     *
-     * @return array{products: array<int, array{id:int, name:string, in_stock:bool}>}|string
      */
-    public function render(array $products): array|string;
+    public function render(array $products): string;
 }

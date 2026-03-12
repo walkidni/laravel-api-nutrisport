@@ -12,18 +12,21 @@ final class JsonFeedRenderer implements FeedRenderer
         return 'json';
     }
 
+    public function contentType(): string
+    {
+        return 'application/json';
+    }
+
     /**
      * @param array<int, FeedProductDTO> $products
-     *
-     * @return array{products: array<int, array{id:int, name:string, in_stock:bool}>}
      */
-    public function render(array $products): array
+    public function render(array $products): string
     {
-        return [
+        return (string) json_encode([
             'products' => array_map(
                 static fn (FeedProductDTO $product): array => $product->toArray(),
                 $products,
             ),
-        ];
+        ], JSON_THROW_ON_ERROR);
     }
 }

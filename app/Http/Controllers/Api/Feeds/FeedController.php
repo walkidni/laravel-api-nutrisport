@@ -28,17 +28,15 @@ class FeedController extends Controller
         Request $request,
         string $format,
         ShowFeedAction $showFeedAction,
-    ): JsonResponse|Response {
+    ): Response {
         try {
             $payload = $showFeedAction($this->currentSiteContextService->get($request), $format);
         } catch (UnsupportedFeedFormatException $exception) {
             throw new NotFoundHttpException(previous: $exception);
         }
 
-        if (is_array($payload)) {
-            return response()->json($payload);
-        }
-
-        return response($payload);
+        return response($payload->body, 200, [
+            'Content-Type' => $payload->contentType,
+        ]);
     }
 }

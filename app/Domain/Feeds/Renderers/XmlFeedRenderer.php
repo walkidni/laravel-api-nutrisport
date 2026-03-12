@@ -13,6 +13,11 @@ final class XmlFeedRenderer implements FeedRenderer
         return 'xml';
     }
 
+    public function contentType(): string
+    {
+        return 'application/xml';
+    }
+
     /**
      * @param array<int, FeedProductDTO> $products
      */
