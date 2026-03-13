@@ -160,6 +160,9 @@ This is:
 - private-channel based
 - permission-gated
 - suitable for Reverb-backed realtime delivery
+- implemented through Laravel broadcasting rather than a vendor-specific SDK
+
+The current preferred runtime is Reverb, while keeping the broadcaster configurable enough to support a Pusher-compatible runtime if needed later.
 
 ### Scheduled reporting
 

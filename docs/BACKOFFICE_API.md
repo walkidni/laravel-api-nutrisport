@@ -40,6 +40,7 @@ Notes:
 - access JWTs are short-lived
 - refresh-token rotation is used to maintain the session
 - overall BackOffice session lifetime is capped at 8 hours from login
+- this implementation uses short-lived access JWTs plus rotating refresh tokens rather than a single long-lived JWT covering the entire 8-hour window
 
 ### `POST /v1/backoffice/auth/refresh`
 
@@ -196,3 +197,6 @@ Notes:
 - this is a single global BackOffice channel, not per-site
 - notifications are broadcast-only
 - there is no persistence, unread state, or replay API
+- realtime delivery is implemented through Laravel broadcasting
+- Reverb is the preferred runtime for this project
+- the broadcaster remains configurable, so a Pusher-compatible runtime can be used without redesigning the feature

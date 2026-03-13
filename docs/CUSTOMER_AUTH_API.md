@@ -96,6 +96,8 @@ Rules:
 - refresh tokens rotate on every successful refresh
 - total customer session lifetime is capped at 6 hours from login
 
+This implementation uses short-lived access JWTs plus rotating refresh tokens rather than a single long-lived JWT covering the entire 6-hour window.
+
 ## Notes
 
 - access-token issuance and validation use `tymon/jwt-auth`
